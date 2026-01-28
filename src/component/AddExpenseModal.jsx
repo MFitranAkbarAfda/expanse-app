@@ -2,16 +2,19 @@ import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
 
 function AddExpenseModal({ onClose, onSuccess }) {
-  const [title, setTitle] = useState("");
-  const [categoryId, setCategoryId] = useState("");
-  const [amount, setAmount] = useState("");
-  const [expenseDate, setExpenseDate] = useState("");
   const [familyId, setFamilyId] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [categorySearch, setCategorySearch] = useState("");
-  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [categorySearch, setCategorySearch] = useState("")
+  const [expenses, setExpenses] = useState([
+    {
+      title: "",
+      category_id: "",
+      amount: "",
+      expense_date: "",
+      show_category_dropdown: false,
+    },
+  ]);
 
-  // 🔹 Ambil family_id dari profile user login
   useEffect(() => {
     const getProfile = async () => {
       const {
@@ -51,21 +54,15 @@ function AddExpenseModal({ onClose, onSuccess }) {
       if (!error) setCategories(data);
     };
 
-    
     fetchCategories();
   }, []);
 
   const filteredCategories = categories.filter((cat) =>
-      cat.name.toLowerCase().includes(categorySearch.toLowerCase()),
-    );
+    cat.name.toLowerCase().includes(categorySearch.toLowerCase()),
+  );
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!familyId) {
-      alert("Family belum ada, hubungi admin");
-      return;
-    }
 
     setLoading(true);
 
@@ -73,16 +70,16 @@ function AddExpenseModal({ onClose, onSuccess }) {
       data: { user },
     } = await supabase.auth.getUser();
 
-    const { error } = await supabase.from("expenses").insert([
-      {
-        title,
-        category_id: categoryId,
-        amount: Number(amount),
-        expense_date: expenseDate,
-        user_id: user.id,
-        family_id: familyId,
-      },
-    ]);
+    const payload = expenses.map((e) => ({
+      title: e.title,
+      category_id: e.category_id,
+      amount: Number(e.amount),
+      expense_date: e.expense_date,
+      user_id: user.id,
+      family_id: familyId,
+    }));
+
+    const { error } = await supabase.from("expenses").insert(payload);
 
     setLoading(false);
 
@@ -95,93 +92,84 @@ function AddExpenseModal({ onClose, onSuccess }) {
     onClose();
   };
 
+  const addRow = () => {
+    setExpenses((prev) => [
+      ...prev,
+      {
+        title: "",
+        category_id: "",
+        amount: "",
+        expense_date: "",
+      },
+    ]);
+  };
+
+  const updateExpense = (index, field, value) => {
+    const updated = [...expenses];
+    updated[index][field] = value;
+    setExpenses(updated);
+  };
+
   return (
     <div style={styles.overlay}>
       <div style={styles.modal}>
         <h3 style={styles.title}>Tambah Pengeluaran</h3>
 
         <form onSubmit={handleSubmit} style={styles.form}>
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Judul</label>
-            <input
-              style={styles.input}
-              placeholder="Contoh: Belanja Bulanan"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-          </div>
+          {expenses.map((exp, index) => (
+            <div key={index} style={styles.rowBox}>
+              <h4>Data {index + 1}</h4>
 
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Kategori</label>
+              <input
+                style={styles.input}
+                placeholder="Judul"
+                value={exp.title}
+                onChange={(e) => updateExpense(index, "title", e.target.value)}
+                required
+              />
 
-            <input
-              style={styles.input}
-              placeholder="Cari kategori..."
-              value={categorySearch}
-              onChange={(e) => {
-                setCategorySearch(e.target.value);
-                setShowCategoryDropdown(true);
-              }}
-              onFocus={() => setShowCategoryDropdown(true)}
-            />
-
-            {showCategoryDropdown && (
-              <div style={styles.dropdown}>
-                {filteredCategories.length === 0 && (
-                  <div style={styles.dropdownItemEmpty}>
-                    Kategori tidak ditemukan
-                  </div>
-                )}
-
-                {filteredCategories.map((cat) => (
-                  <div
-                    key={cat.id}
-                    style={styles.dropdownItem}
-                    onClick={() => {
-                      setCategoryId(cat.id);
-                      setCategorySearch(cat.name);
-                      setShowCategoryDropdown(false);
-                    }}
-                  >
-                    {cat.name}
-                  </div>
+              <select
+                style={styles.input}
+                value={exp.category_id}
+                onChange={(e) =>
+                  updateExpense(index, "category_id", e.target.value)
+                }
+                required
+              >
+                <option value="">Pilih Kategori</option>
+                {categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
                 ))}
-              </div>
-            )}
-          </div>
+              </select>
 
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Nominal</label>
-            <input
-              style={styles.input}
-              type="number"
-              placeholder="Contoh: 50000"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              required
-            />
-          </div>
+              <input
+                type="number"
+                style={styles.input}
+                placeholder="Nominal"
+                value={exp.amount}
+                onChange={(e) => updateExpense(index, "amount", e.target.value)}
+                required
+              />
 
-          <div style={styles.formGroup}>
-            <label style={styles.label}>Tanggal</label>
-            <input
-              style={styles.input}
-              type="date"
-              value={expenseDate}
-              onChange={(e) => setExpenseDate(e.target.value)}
-              required
-            />
-          </div>
+              <input
+                type="date"
+                style={styles.input}
+                value={exp.expense_date}
+                onChange={(e) =>
+                  updateExpense(index, "expense_date", e.target.value)
+                }
+                required
+              />
+            </div>
+          ))}
 
-          <div style={styles.actions}>
-            <button type="button" style={styles.cancelBtn} onClick={onClose}>
-              Batal
-            </button>
-            <button type="submit" style={styles.submitBtn} disabled={loading}>
-              {loading ? "Menyimpan..." : "Simpan"}
-            </button>
-          </div>
+          <button type="button" onClick={addRow}>
+            + Tambah Data
+          </button>
+
+          <button type="submit">Simpan Semua</button>
         </form>
       </div>
     </div>
@@ -223,7 +211,6 @@ const styles = {
     gap: 6,
   },
 
-  /* 🔥 INI YANG PENTING */
   label: {
     fontSize: 13,
     fontWeight: 500,
@@ -272,29 +259,28 @@ const styles = {
   },
 
   dropdown: {
-  marginTop: 4,
-  border: '1px solid #cbd5e1',
-  borderRadius: 8,
-  maxHeight: 180,
-  overflowY: 'auto',
-  background: '#fff',
-  boxShadow: '0 8px 20px rgba(0,0,0,0.1)',
-  zIndex: 50,
-},
+    marginTop: 4,
+    border: "1px solid #cbd5e1",
+    borderRadius: 8,
+    maxHeight: 180,
+    overflowY: "auto",
+    background: "#fff",
+    boxShadow: "0 8px 20px rgba(0,0,0,0.1)",
+    zIndex: 50,
+  },
 
-dropdownItem: {
-  padding: '10px 12px',
-  cursor: 'pointer',
-  fontSize: 14,
-  color: '#000',
-},
+  dropdownItem: {
+    padding: "10px 12px",
+    cursor: "pointer",
+    fontSize: 14,
+    color: "#000",
+  },
 
-dropdownItemEmpty: {
-  padding: '10px 12px',
-  color: '#64748b',
-  fontSize: 13,
-},
-
+  dropdownItemEmpty: {
+    padding: "10px 12px",
+    color: "#64748b",
+    fontSize: 13,
+  },
 };
 
 export default AddExpenseModal;

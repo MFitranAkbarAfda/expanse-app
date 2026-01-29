@@ -100,8 +100,13 @@ function AddExpenseModal({ onClose, onSuccess }) {
         category_id: "",
         amount: "",
         expense_date: "",
+        show_category_dropdown: false,
       },
     ]);
+  };
+
+  const removeRow = (index) => {
+    setExpenses((prev) => prev.filter((_, i) => i !== index));
   };
 
   const updateExpense = (index, field, value) => {
@@ -118,7 +123,7 @@ function AddExpenseModal({ onClose, onSuccess }) {
         <form onSubmit={handleSubmit} style={styles.form}>
           {expenses.map((exp, index) => (
             <div key={index} style={styles.rowBox}>
-              <h4>Data {index + 1}</h4>
+              <h4 style={{ color: "#000" }}>Data {index + 1}</h4>
 
               <input
                 style={styles.input}

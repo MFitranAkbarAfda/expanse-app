@@ -26,7 +26,7 @@ function Expenses({ userId }) {
   const familyId = profile?.family_id
 
     const { data, error } = await supabase
-      .from("expenses")
+      .from("transactions")
       .select(
         `
     id,

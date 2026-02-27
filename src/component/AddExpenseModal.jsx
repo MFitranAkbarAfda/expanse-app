@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../supabaseClient";
+import styles from "./AddExpenseModal.module.css"
 
 function AddExpenseModal({ onClose, onSuccess }) {
   const [familyId, setFamilyId] = useState(null);
@@ -125,22 +126,33 @@ function AddExpenseModal({ onClose, onSuccess }) {
   };
 
   return (
-    <div style={styles.overlay}>
-      <div style={styles.modal}>
-        <h3 style={styles.title}>Tambah Pengeluaran</h3>
+    <div className={styles.overlay}>
+      <div className={styles.modal}>
+        <div className={styles.modalHeader}>
+          <h3 className={styles.title}>Tambah Pengeluaran</h3>
 
-        <div style={styles.content}>
-          <form onSubmit={handleSubmit} style={styles.form}>
+          <button
+            type="button"
+            className={styles.closeBtn}
+            onClick={onClose}
+          >
+            ✕
+          </button>
+
+        </div>
+
+        <div className={styles.content}>
+          <form onSubmit={handleSubmit} className={styles.form}>
             {expenses.map((exp, index) => (
-              <div key={index} style={styles.rowBox}>
-                <div style={styles.rowHeader}>
-                  <h4 style={styles.rowTitle}>Data {index + 1}</h4>
+              <div key={index} className={styles.rowBox}>
+                <div className={styles.rowHeader}>
+                  <h4 className={styles.rowTitle}>Data {index + 1}</h4>
 
                   {expenses.length > 1 && (
                     <button
                       type="button"
                       onClick={() => removeRow(index)}
-                      style={styles.removeBtn}
+                      className={styles.removeBtn}
                     >
                       ✕
                     </button>
@@ -148,7 +160,7 @@ function AddExpenseModal({ onClose, onSuccess }) {
                 </div>
 
                 <input
-                  style={styles.input}
+                  className={styles.input}
                   placeholder="Judul"
                   value={exp.title}
                   onChange={(e) =>
@@ -157,9 +169,9 @@ function AddExpenseModal({ onClose, onSuccess }) {
                   required
                 />
 
-                <div style={{ position: "relative" }}>
+                <div className={styles.categoryWrapper} >
                   <input
-                    style={styles.input}
+                    className={styles.input}
                     placeholder="Pilih / ketik kategori"
                     value={exp.category_name}
                     onChange={(e) => {
@@ -174,19 +186,19 @@ function AddExpenseModal({ onClose, onSuccess }) {
                   />
 
                   {exp.show_category_dropdown && (
-                    <div style={styles.dropdown}>
+                    <div className={styles.dropdown}>
                       {filteredCategories.length > 0 ? (
                         filteredCategories.map((cat) => (
                           <div
                             key={cat.id}
-                            style={styles.dropdownItem}
+                            className={styles.dropdownItem}
                             onClick={() => handleCategorySelect(index, cat)}
                           >
                             {cat.name}
                           </div>
                         ))
                       ) : (
-                        <div style={styles.dropdownItemEmpty}>
+                        <div className={styles.dropdownItemEmpty}>
                           Kategori tidak ditemukan
                         </div>
                       )}
@@ -197,7 +209,8 @@ function AddExpenseModal({ onClose, onSuccess }) {
                 <div style={{ display: "flex", gap: 10 }}>
                   <input
                     type="number"
-                    style={{ ...styles.input, flex: 1 }}
+                    className={styles.input}
+                    style={{ flex: 1 }}
                     placeholder="Nominal"
                     value={exp.amount}
                     onChange={(e) =>
@@ -208,7 +221,7 @@ function AddExpenseModal({ onClose, onSuccess }) {
 
                   <input
                     type="date"
-                    style={{ ...styles.input, flex: 1 }}
+                    className={{ ...styles.input, flex: 1 }}
                     value={exp.expense_date}
                     onChange={(e) =>
                       updateExpense(index, "expense_date", e.target.value)
@@ -219,12 +232,12 @@ function AddExpenseModal({ onClose, onSuccess }) {
               </div>
             ))}
 
-            <div style={styles.actions}>
-              <button type="button" onClick={addRow} style={styles.cancelBtn}>
+            <div className={styles.actions}>
+              <button type="button" onClick={addRow} className={styles.cancelBtn}>
                 + Tambah Data
               </button>
 
-              <button type="submit" style={styles.submitBtn} disabled={loading}>
+              <button type="submit" className={styles.submitBtn} disabled={loading}>
                 {loading ? "Menyimpan..." : "Simpan Semua"}
               </button>
             </div>
@@ -234,163 +247,5 @@ function AddExpenseModal({ onClose, onSuccess }) {
     </div>
   );
 }
-
-const styles = {
-  content: {
-    maxHeight: "70vh",
-    overflowY: "auto",
-    paddingRight: 4,
-  },
-
-  overlay: {
-    position: "fixed",
-    inset: 0,
-    background: "rgba(15, 23, 42, 0.6)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 1000,
-  },
-  modal: {
-    background: "#fff",
-    width: "100%",
-    maxWidth: 420,
-    maxHeight: "80vh",
-    borderRadius: 12,
-    padding: 24,
-    boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
-    display: "flex",
-    flexDirection: "column",
-  },
-
-  title: {
-    marginBottom: 16,
-    fontSize: 20,
-    fontWeight: 600,
-    color: "#0f172a",
-  },
-  rowBox: {
-    border: "1px solid #e2e8f0",
-    borderRadius: 12,
-    padding: 14,
-    display: "flex",
-    flexDirection: "column",
-    gap: 10,
-    background: "#f8fafc",
-  },
-
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 14,
-  },
-  formGroup: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 6,
-  },
-
-  label: {
-    fontSize: 13,
-    fontWeight: 500,
-    color: "#334155",
-  },
-  input: {
-    padding: "10px 12px",
-    borderRadius: 8,
-    border: "1px solid #cbd5e1",
-    fontSize: 14,
-    outline: "none",
-  },
-  select: {
-    padding: "10px 12px",
-    borderRadius: 8,
-    border: "1px solid #cbd5e1",
-    fontSize: 14,
-    color: "#000",
-    background: "#fff",
-    outline: "none",
-    cursor: "pointer",
-  },
-
-  actions: {
-    display: "flex",
-    justifyContent: "flex-end",
-    gap: 10,
-    marginTop: 20,
-  },
-  cancelBtn: {
-    color: "#000",
-    padding: "8px 16px",
-    borderRadius: 8,
-    border: "1px solid #cbd5e1",
-    background: "#fff",
-    cursor: "pointer",
-  },
-  submitBtn: {
-    padding: "8px 18px",
-    borderRadius: 8,
-    border: "none",
-    background: "#2563eb",
-    color: "#fff",
-    fontWeight: 500,
-    cursor: "pointer",
-  },
-
-  dropdown: {
-    position: "absolute",
-    top: "100%",
-    left: 0,
-    right: 0,
-    marginTop: 4,
-    border: "1px solid #cbd5e1",
-    borderRadius: 8,
-    maxHeight: 180,
-    overflowY: "auto",
-    background: "#fff",
-    boxShadow: "0 8px 20px rgba(0,0,0,0.1)",
-    zIndex: 50,
-  },
-
-  dropdownItem: {
-    padding: "10px 12px",
-    cursor: "pointer",
-    fontSize: 14,
-    color: "#000",
-  },
-
-  dropdownItemEmpty: {
-    padding: "10px 12px",
-    color: "#64748b",
-    fontSize: 13,
-  },
-
-  rowHeader: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    borderBottom: "1px solid #e5e7eb",
-    paddingBottom: 6,
-  },
-
-  rowTitle: {
-    fontSize: 14,
-    fontWeight: 600,
-    color: "#0f172a",
-  },
-
-  removeBtn: {
-    border: "none",
-    background: "#fee2e2",
-    color: "#b91c1c",
-    width: 35,
-    height: 33,
-    borderRadius: "50%",
-    cursor: "pointer",
-    fontSize: 16,
-    lineHeight: "2px",
-    textAlign: "center",
-  },
-};
 
 export default AddExpenseModal;
